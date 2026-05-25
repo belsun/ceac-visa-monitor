@@ -1,0 +1,25 @@
+# State files (contain personal case data)
+state/
+*.json
+!config*.yaml
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Config with real credentials
+config.yaml
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db

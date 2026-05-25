@@ -1,0 +1,35 @@
+# CEAC Visa Status Monitor - Configuration
+# Copy this file to config.yaml and fill in your details.
+
+# Your CEAC case information (required)
+case:
+  app_id: "AA000000000"        # Application ID / Case Number (e.g., AA0020AKAX)
+  passport: "E12345678"        # Passport number
+  surname: "ZHANG"             # First 5 letters of surname
+  location: "HNK"              # Embassy/Consulate location code
+                                # Common codes:
+                                #   HNK = Hong Kong
+                                #   CHI = Beijing
+                                #   CGS = Guangzhou
+                                #   SHA = Shanghai
+                                #   CGO = Chengdu
+                                #   SYA = Shenyang
+                                #   WUH = Wuhan
+                                #   LON = London
+                                #   NYC = New York (US consulate)
+  visa_type: "NIV"             # NIV = Nonimmigrant, IV = Immigrant
+
+# CAPTCHA solving method
+settings:
+  captcha_method: "ocr"        # ocr (ddddocr) | manual | tesseract
+  check_interval_minutes: 60   # Default interval when using --loop
+
+# Notification channels (at least one recommended)
+notification:
+  # Telegram Bot notifications
+  telegram:
+    bot_token: ""              # Your Telegram bot token (from @BotFather)
+    chat_id: ""                # Your Telegram chat ID (get from @userinfobot)
+
+  # Generic webhook (POST JSON with {"text": "..."})
+  webhook: ""
