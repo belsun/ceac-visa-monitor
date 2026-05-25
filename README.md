@@ -96,9 +96,39 @@ python ceac_monitor.py --loop --interval 30
 4. Message [@userinfobot](https://t.me/userinfobot) to get your chat ID
 5. Put the chat ID in `config.yaml`
 
-## 🔁 Cron Setup
+## ☁️ GitHub Actions (Recommended — No Local Setup)
 
-For scheduled monitoring without the `--loop` flag:
+The easiest way to monitor — runs in the cloud, no computer needed.
+
+### 1. Fork or clone this repo
+
+### 2. Add secrets to your repo
+
+Go to your repo → **Settings** → **Secrets and variables** → **Actions** → **New repository secret**
+
+Add these secrets:
+
+| Secret | Value |
+|--------|-------|
+| `CEAC_APP_ID` | Your Application ID (e.g. `AA0020AKAX`) |
+| `CEAC_PASSPORT` | Your passport number |
+| `CEAC_SURNAME` | First 5 letters of surname |
+| `CEAC_LOCATION` | Embassy code (e.g. `HNK`) |
+| `CEAC_VISA_TYPE` | `NIV` or `IV` |
+| `TELEGRAM_BOT_TOKEN` | Your Telegram bot token from @BotFather |
+| `TELEGRAM_CHAT_ID` | Your chat ID from @userinfobot |
+
+### 3. Enable the workflow
+
+Go to **Actions** tab → Click **"I understand my workflows, go ahead and enable them"**
+
+The monitor will automatically run **every hour**. You can also trigger it manually from the Actions tab.
+
+> 🔒 **Your data is safe:** Secrets are encrypted by GitHub and never appear in logs or code. The `state/` directory with your status history is cached locally in the runner and never committed to the repo.
+
+## 🔁 Cron Setup (Self-Hosted)
+
+For scheduled monitoring without the `--loop` flag, on your own machine:
 
 ```bash
 # Check every hour

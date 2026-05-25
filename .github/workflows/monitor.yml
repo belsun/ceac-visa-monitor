@@ -1,0 +1,50 @@
+name: CEAC Visa Status Monitor
+
+on:
+  schedule:
+    # Check every hour
+    - cron: '0 * * * *'
+  workflow_dispatch:
+    # Allow manual trigger from GitHub UI
+
+jobs:
+  check-status:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Restore previous state
+        uses: actions/cache@v4
+        with:
+          path: /tmp/ceac-state
+          key: ceac-visa-state
+          restore-keys: ceac-visa-state
+
+      - name: Run CEAC status check
+        env:
+          CEAC_APP_ID: ${{ secrets.CEAC_APP_ID }}
+          CEAC_PASSPORT: ${{ secrets.CEAC_PASSPORT }}
+          CEAC_SURNAME: ${{ secrets.CEAC_SURNAME }}
+          CEAC_LOCATION: ${{ secrets.CEAC_LOCATION }}
+          CEAC_VISA_TYPE: ${{ secrets.CEAC_VISA_TYPE || 'NIV' }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python ceac_monitor.py --state-dir /tmp/ceac-state
+
+      - name: Save state
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: /tmp/ceac-state
+          key: ceac-visa-state
