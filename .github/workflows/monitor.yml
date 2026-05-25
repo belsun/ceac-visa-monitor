@@ -40,6 +40,9 @@ jobs:
           CEAC_VISA_TYPE: ${{ secrets.CEAC_VISA_TYPE || 'NIV' }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          WEIXIN_TOKEN: ${{ secrets.WEIXIN_TOKEN }}
+          WEIXIN_BASE_URL: ${{ secrets.WEIXIN_BASE_URL || 'https://ilinkai.weixin.qq.com' }}
+          WEIXIN_TO_USER: ${{ secrets.WEIXIN_TO_USER }}
         run: python ceac_monitor.py --state-dir /tmp/ceac-state
 
       - name: Save state

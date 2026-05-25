@@ -31,5 +31,11 @@ notification:
     bot_token: ""              # Your Telegram bot token (from @BotFather)
     chat_id: ""                # Your Telegram chat ID (get from @userinfobot)
 
+  # WeChat notifications (iLink Bot API)
+  weixin:
+    token: ""                  # WeChat bot token (from Hermes iLink QR login)
+    base_url: "https://ilinkai.weixin.qq.com"  # iLink API base URL
+    to_user: ""                # Your WeChat user ID (e.g. o9xxx@im.wechat)
+
   # Generic webhook (POST JSON with {"text": "..."})
   webhook: ""

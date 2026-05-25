@@ -93,6 +93,9 @@ def load_config(config_path: str | Path | None = None) -> dict:
         "captcha_method": "ocr",  # ocr | manual
         "telegram_bot_token": "",
         "telegram_chat_id": "",
+        "weixin_token": "",
+        "weixin_base_url": "https://ilinkai.weixin.qq.com",
+        "weixin_to_user": "",
         "notify_webhook": "",
         "check_interval_minutes": 60,
     }
@@ -117,6 +120,13 @@ def load_config(config_path: str | Path | None = None) -> dict:
             webhook = file_cfg.get("notification", {}).get("webhook", "")
             if webhook:
                 cfg["notify_webhook"] = webhook
+            wx = file_cfg.get("notification", {}).get("weixin", {})
+            if wx.get("token"):
+                cfg["weixin_token"] = wx["token"]
+            if wx.get("base_url"):
+                cfg["weixin_base_url"] = wx["base_url"]
+            if wx.get("to_user"):
+                cfg["weixin_to_user"] = wx["to_user"]
             # Settings
             settings = file_cfg.get("settings", {})
             if "captcha_method" in settings:
@@ -135,6 +145,9 @@ def load_config(config_path: str | Path | None = None) -> dict:
     cfg["telegram_bot_token"] = os.getenv("TELEGRAM_BOT_TOKEN", cfg["telegram_bot_token"])
     cfg["telegram_chat_id"] = os.getenv("TELEGRAM_CHAT_ID", cfg["telegram_chat_id"])
     cfg["notify_webhook"] = os.getenv("NOTIFY_WEBHOOK", cfg["notify_webhook"])
+    cfg["weixin_token"] = os.getenv("WEIXIN_TOKEN", cfg["weixin_token"])
+    cfg["weixin_base_url"] = os.getenv("WEIXIN_BASE_URL", cfg["weixin_base_url"])
+    cfg["weixin_to_user"] = os.getenv("WEIXIN_TO_USER", cfg["weixin_to_user"])
 
     return cfg
 
@@ -473,10 +486,34 @@ def send_webhook(webhook_url: str, text: str):
         log.error(f"Webhook send failed: {e}")
 
 
+def send_weixin(token: str, base_url: str, to_user: str, text: str):
+    """Send a message via WeChat iLink Bot API."""
+    url = f"{base_url}/ilink/bot/sendmessage"
+    # Strip HTML tags for WeChat (it doesn't support HTML)
+    import re as _re
+    plain_text = _re.sub(r"<[^>]+>", "", text)
+    payload = {
+        "to_user": to_user,
+        "content": plain_text,
+    }
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json",
+    }
+    try:
+        r = requests.post(url, json=payload, headers=headers, timeout=15)
+        r.raise_for_status()
+        log.info("WeChat notification sent")
+    except Exception as e:
+        log.error(f"WeChat send failed: {e}")
+
+
 def notify(cfg: dict, message: str):
     """Send notification through configured channels."""
     if cfg.get("telegram_bot_token") and cfg.get("telegram_chat_id"):
         send_telegram(cfg["telegram_bot_token"], cfg["telegram_chat_id"], message)
+    if cfg.get("weixin_token") and cfg.get("weixin_to_user"):
+        send_weixin(cfg["weixin_token"], cfg["weixin_base_url"], cfg["weixin_to_user"], message)
     if cfg.get("notify_webhook"):
         send_webhook(cfg["notify_webhook"], message)
     # Always print to stdout
