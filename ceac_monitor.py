@@ -34,15 +34,34 @@ CEAC_URL = "https://ceac.state.gov/CEACStatTracker/Status.aspx"
 CAPTCHA_BASE = "https://ceac.state.gov/CEACStatTracker/BotDetectCaptcha.ashx"
 
 STATUS_KEYWORDS = [
+    # Standard statuses (exact match)
     "Administrative Processing",
     "Approved",
     "Issued",
-    "Refused",
     "Denied",
     "Ready",
     "In Transit",
     "Origination Scan",
     "No Status",
+    "Application Received",
+    "Case Created",
+    "Expedited",
+    # Refusal statuses — may appear as exact or with INA section suffix
+    "Refused",
+    "Refused under INA 214(b)",
+    "Refused under INA 221(g)",
+    "Refused under INA 212(a)",
+    "Refused under INA 212(e)",
+    "Refused under INA 214(c)",
+    "Refused under INA 221(g)(1)",
+    "Refused under INA 221(g)(2)",
+    "Refused under INA 221(h)",
+]
+
+# Prefixes for fuzzy matching — catches "Refused under INA ..." variants
+STATUS_PREFIXES = [
+    "Refused under INA",
+    "Administrative Processing",
 ]
 
 HELP_TEXT_SKIP = [
@@ -335,22 +354,30 @@ def submit_form(
 
     found_status = None
 
-    # Method 1: Exact match in headings
-    for tag in soup.find_all(["h1", "h2", "h3", "strong", "b"]):
-        text = tag.get_text(strip=True)
+    def match_status(text: str) -> str | None:
+        """Check if text matches any known status (exact or prefix)."""
+        text_clean = text.strip()
+        # Exact match first
         for pattern in STATUS_KEYWORDS:
-            if text == pattern:
-                found_status = pattern
-                break
+            if text_clean == pattern:
+                return pattern
+        # Prefix match (e.g. "Refused under INA 301(b)")
+        for prefix in STATUS_PREFIXES:
+            if text_clean.startswith(prefix):
+                return text_clean
+        return None
+
+    # Method 1: Match in headings (h1-h3, strong, b)
+    for tag in soup.find_all(["h1", "h2", "h3", "strong", "b"]):
+        found_status = match_status(tag.get_text(strip=True))
         if found_status:
             break
 
-    # Method 2: Exact match in other elements
+    # Method 2: Match in other block elements
     if not found_status:
         for tag in soup.find_all(["div", "span", "p", "td"]):
-            text = tag.get_text(strip=True)
-            if text in STATUS_KEYWORDS:
-                found_status = text
+            found_status = match_status(tag.get_text(strip=True))
+            if found_status:
                 break
 
     # Method 3: Broader search with context filtering
@@ -358,6 +385,7 @@ def submit_form(
         body = soup.find("body")
         if body:
             body_text = body.get_text()
+            # Search by exact keywords
             for pattern in STATUS_KEYWORDS:
                 regex = re.compile(r"\b" + re.escape(pattern) + r"\b", re.IGNORECASE)
                 for m in regex.finditer(body_text):
@@ -369,6 +397,13 @@ def submit_form(
                     break
                 if found_status:
                     break
+            # Search by prefixes (e.g. "Refused under INA 301(b)")
+            if not found_status:
+                for prefix in STATUS_PREFIXES:
+                    regex = re.compile(r"\b" + re.escape(prefix) + r"[^\n]{0,30}", re.IGNORECASE)
+                    m = regex.search(body_text)
+                    if m:
+                        found_status = m.group(0).strip()
 
     if not found_status:
         raise RuntimeError("Could not determine status from response")

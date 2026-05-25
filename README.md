@@ -146,9 +146,17 @@ For scheduled monitoring without the `--loop` flag, on your own machine:
 | **Approved** | Visa approved, pending issuance |
 | **Issued** | Visa has been issued and mailed |
 | **Refused** | Visa application denied |
+| **Refused under INA 214(b)** | Denied — insufficient ties to home country |
+| **Refused under INA 221(g)** | Denied — missing documents or additional admin processing |
+| **Refused under INA 212(a)** | Denied — inadmissibility grounds |
+| **Denied** | Application denied |
 | **Ready** | Application ready for interview |
 | **In Transit** | Visa in transit to consulate |
 | **Origination Scan** | Being processed at origin |
+| **Application Received** | Application received by consulate |
+| **Expedited** | Under expedited processing |
+
+> The monitor also catches any `Refused under INA ...` variant automatically via prefix matching.
 
 ## ⚠️ Notes
 
