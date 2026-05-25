@@ -678,6 +678,14 @@ def check_once(cfg: dict, state_dir: Path) -> bool:
             raise
 
     log.error(f"Failed after {max_retries} CAPTCHA attempts")
+    # Send failure notification so user knows what happened
+    notify(cfg, (
+        f"🇺🇸 CEAC Status Check — FAILED\n\n"
+        f"Could not solve CAPTCHA after {max_retries} attempts.\n"
+        f"Case ID: {cfg['app_id']}\n"
+        f"Time: {time.strftime('%Y-%m-%d %H:%M:%S')}\n\n"
+        f"The next scheduled run will try again automatically."
+    ))
     return False
 
 
@@ -709,6 +717,7 @@ def main():
                 break
             except Exception as e:
                 log.error(f"Check failed: {e}")
+                notify(cfg, f"🇺🇸 CEAC Check Error\n\n{e}\nTime: {time.strftime('%Y-%m-%d %H:%M:%S')}")
             log.info(f"Next check in {interval} minutes...")
             try:
                 time.sleep(interval * 60)
