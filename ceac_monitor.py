@@ -602,7 +602,7 @@ def check_once(cfg: dict, state_dir: Path) -> bool:
 
     log.info(f"Checking CEAC status for {cfg['app_id']}...")
 
-    max_retries = 5
+    max_retries = 15
     for attempt in range(1, max_retries + 1):
         try:
             session, form_state, captcha_path = download_captcha(cfg, state_dir)
