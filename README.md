@@ -88,11 +88,17 @@ python ceac_monitor.py --loop --interval 30
 
 ### CAPTCHA Solving
 
-| Method | Pros | Cons |
-|--------|------|------|
-| `ocr` (default) | Fast, automatic | ~70% success rate, may need retries |
-| `manual` | 100% accurate | Requires human input each time |
-| `tesseract` | No extra deps beyond pytesseract | Low accuracy on CEAC CAPTCHAs |
+CEAC uses dot-matrix style CAPTCHAs that are difficult for basic OCR.
+
+| Method | Accuracy | Cost | Best for |
+|--------|----------|------|----------|
+| `2captcha` (recommended) | ~99% | ~$3/1000 | Automated monitoring |
+| `audio` | ~80% | Free | Fallback option |
+| `ocr` (ddddocr) | ~0% on CEAC | Free | Other CAPTCHA types |
+| `tesseract` | ~0% on CEAC | Free | Other CAPTCHA types |
+| `manual` | 100% | Free | Local debugging |
+
+> 💡 For GitHub Actions, use `2captcha`. Sign up at [2captcha.com](https://2captcha.com), add $3 credit, and get your API key.
 
 ### Telegram Setup
 

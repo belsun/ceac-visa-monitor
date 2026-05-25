@@ -90,7 +90,8 @@ def load_config(config_path: str | Path | None = None) -> dict:
         "surname": "",
         "location": "HNK",
         "visa_type": "NIV",
-        "captcha_method": "ocr",  # ocr | manual
+        "captcha_method": "ocr",  # ocr | manual | tesseract | 2captcha | audio
+        "captcha_api_key": "",    # 2captcha API key (if using 2captcha method)
         "telegram_bot_token": "",
         "telegram_chat_id": "",
         "weixin_token": "",
@@ -145,6 +146,7 @@ def load_config(config_path: str | Path | None = None) -> dict:
     cfg["telegram_bot_token"] = os.getenv("TELEGRAM_BOT_TOKEN", cfg["telegram_bot_token"])
     cfg["telegram_chat_id"] = os.getenv("TELEGRAM_CHAT_ID", cfg["telegram_chat_id"])
     cfg["notify_webhook"] = os.getenv("NOTIFY_WEBHOOK", cfg["notify_webhook"])
+    cfg["captcha_api_key"] = os.getenv("CAPTCHA_API_KEY", cfg["captcha_api_key"])
     cfg["weixin_token"] = os.getenv("WEIXIN_TOKEN", cfg["weixin_token"])
     cfg["weixin_base_url"] = os.getenv("WEIXIN_BASE_URL", cfg["weixin_base_url"])
     cfg["weixin_to_user"] = os.getenv("WEIXIN_TO_USER", cfg["weixin_to_user"])
@@ -197,6 +199,70 @@ def solve_captcha_ocr(image_bytes: bytes) -> str:
     except ImportError:
         log.error("ddddocr not installed. Run: pip install ddddocr")
         sys.exit(1)
+
+
+def solve_captcha_2captcha(api_key: str, image_bytes: bytes) -> str:
+    """Solve CAPTCHA using 2captcha API (paid, ~$3/1000 CAPTCHAs)."""
+    import base64
+    img_b64 = base64.b64encode(image_bytes).decode()
+
+    # Submit CAPTCHA
+    submit_url = "https://2captcha.com/in.php"
+    submit_data = {
+        "key": api_key,
+        "method": "base64",
+        "body": img_b64,
+        "json": 1,
+    }
+    r = requests.post(submit_url, data=submit_data, timeout=30)
+    result = r.json()
+    if result.get("status") != 1:
+        raise RuntimeError(f"2captcha submit failed: {result.get('request')}")
+
+    task_id = result["request"]
+    log.info(f"2captcha task submitted: {task_id}")
+
+    # Poll for result
+    result_url = "https://2captcha.com/res.php"
+    for _ in range(30):  # max 60 seconds
+        time.sleep(2)
+        r = requests.get(result_url, params={
+            "key": api_key, "action": "get", "id": task_id, "json": 1
+        }, timeout=15)
+        res = r.json()
+        if res.get("status") == 1:
+            return res["request"]
+        if "CAPCHA_NOT_READY" not in str(res.get("request", "")):
+            raise RuntimeError(f"2captcha solve failed: {res.get('request')}")
+
+    raise RuntimeError("2captcha timeout (60s)")
+
+
+def solve_captcha_audio(session: requests.Session, vcid_value: str) -> str:
+    """Solve CAPTCHA using CEAC's audio version + speech recognition."""
+    try:
+        import speech_recognition as sr
+    except ImportError:
+        raise RuntimeError("speech_recognition not installed. Run: pip install SpeechRecognition")
+
+    audio_url = (
+        f"{CAPTCHA_BASE}?get=sound"
+        f"&c=c_status_ctl00_contentplaceholder1_defaultcaptcha&t={vcid_value}"
+    )
+    r = session.get(audio_url, timeout=15)
+    r.raise_for_status()
+
+    with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
+        f.write(r.content)
+        tmp = f.name
+    try:
+        recognizer = sr.Recognizer()
+        with sr.AudioFile(tmp) as source:
+            audio = recognizer.record(source)
+        text = recognizer.recognize_google(audio)
+        return text.strip()
+    finally:
+        os.unlink(tmp)
 
 
 def solve_captcha_manual(image_path: str) -> str:
@@ -547,6 +613,14 @@ def check_once(cfg: dict, state_dir: Path) -> bool:
                 captcha_text = solve_captcha_manual(captcha_path)
             elif method == "tesseract":
                 captcha_text = solve_captcha_tesseract(captcha_bytes)
+            elif method == "2captcha":
+                api_key = cfg.get("captcha_api_key", "")
+                if not api_key:
+                    raise RuntimeError("2captcha method requires CAPTCHA_API_KEY")
+                captcha_text = solve_captcha_2captcha(api_key, captcha_bytes)
+            elif method == "audio":
+                vcid_val = form_state.get("vcid_value", "")
+                captcha_text = solve_captcha_audio(session, vcid_val)
             else:  # ocr (default)
                 captcha_text = solve_captcha_ocr(captcha_bytes)
 

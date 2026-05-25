@@ -38,6 +38,8 @@ jobs:
           CEAC_SURNAME: ${{ secrets.CEAC_SURNAME }}
           CEAC_LOCATION: ${{ secrets.CEAC_LOCATION }}
           CEAC_VISA_TYPE: ${{ secrets.CEAC_VISA_TYPE || 'NIV' }}
+          CAPTCHA_API_KEY: ${{ secrets.CAPTCHA_API_KEY }}
+          CEAC_CAPTCHA_METHOD: ${{ secrets.CAPTCHA_METHOD || '2captcha' }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           WEIXIN_TOKEN: ${{ secrets.WEIXIN_TOKEN }}

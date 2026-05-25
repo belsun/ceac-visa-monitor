@@ -21,7 +21,9 @@ case:
 
 # CAPTCHA solving method
 settings:
-  captcha_method: "ocr"        # ocr (ddddocr) | manual | tesseract
+  captcha_method: "2captcha"   # ocr | manual | tesseract | 2captcha | audio
+  captcha_api_key: ""          # 2captcha API key (required if method=2captcha)
+                                # Get one at https://2captcha.com ($2.99 for 1000 CAPTCHAs)
   check_interval_minutes: 60   # Default interval when using --loop
 
 # Notification channels (at least one recommended)
