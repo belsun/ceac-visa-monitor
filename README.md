@@ -65,20 +65,25 @@ python ceac_monitor.py --loop --interval 30
 | `location` | Embassy/Consulate code | `HNK` (Hong Kong) |
 | `visa_type` | `NIV` (Nonimmigrant) or `IV` (Immigrant) | `NIV` |
 
-### Location Codes (Common)
+### Location Codes
+
+229 locations supported — see [LOCATIONS.md](LOCATIONS.md) for the full list.
 
 | Code | Location |
 |------|----------|
 | `HNK` | Hong Kong |
-| `CHI` | Beijing |
-| `CGS` | Guangzhou |
-| `SHA` | Shanghai |
-| `CGO` | Chengdu |
-| `SYA` | Shenyang |
+| `BEJ` | Beijing |
+| `GUZ` | Guangzhou |
+| `SHG` | Shanghai |
+| `CHE` | Chengdu |
+| `SNY` | Shenyang |
 | `WUH` | Wuhan |
-| `LON` | London |
-| `TYO` | Tokyo |
-| `SEL` | Seoul |
+| `LND` | London |
+| `TKY` | Tokyo |
+| `SEO` | Seoul |
+| `TAI` | Taipei |
+| `SGP` | Singapore |
+| `BNK` | Bangkok |
 
 ### CAPTCHA Solving
 
@@ -138,6 +143,49 @@ For scheduled monitoring without the `--loop` flag, on your own machine:
 */30 8-22 * * * cd /path/to/ceac-visa-monitor && python ceac_monitor.py >> logs/monitor.log 2>&1
 ```
 
+## 🐳 Docker (One-Click Deploy)
+
+Run the monitor in a container — no Python setup needed.
+
+```bash
+# 1. Fill in your credentials
+cp config.example.yaml config.yaml
+# Edit config.yaml with your case details
+
+# 2. Set environment variables (or create a .env file)
+export CEAC_APP_ID="AA000000000"
+export CEAC_PASSPORT="E12345678"
+export CEAC_SURNAME="ZHANG"
+export CEAC_LOCATION="HNK"
+export TELEGRAM_BOT_TOKEN="your-token"
+export TELEGRAM_CHAT_ID="your-chat-id"
+
+# 3. Build and run
+docker compose up -d
+
+# Check logs
+docker compose logs -f
+
+# Stop
+docker compose down
+```
+
+Or with plain Docker:
+
+```bash
+docker build -t ceac-monitor .
+docker run -d --name ceac-monitor \
+  -e CEAC_APP_ID="AA000000000" \
+  -e CEAC_PASSPORT="E12345678" \
+  -e CEAC_SURNAME="ZHANG" \
+  -e CEAC_LOCATION="HNK" \
+  -e TELEGRAM_BOT_TOKEN="your-token" \
+  -e TELEGRAM_CHAT_ID="your-chat-id" \
+  -v $(pwd)/config.yaml:/app/config.yaml:ro \
+  -v $(pwd)/state:/app/state \
+  ceac-monitor
+```
+
 ## 📊 Status Types
 
 | Status | Meaning |
@@ -174,7 +222,12 @@ ceac-visa-monitor/
 ├── config.example.yaml    # Config template
 ├── config.yaml            # Your config (git-ignored)
 ├── requirements.txt       # Python dependencies
+├── Dockerfile             # Docker image build
+├── docker-compose.yml     # Docker Compose config
+├── .dockerignore
+├── LOCATIONS.md           # Full list of 229 location codes
 ├── .gitignore
+├── LICENSE                # MIT
 ├── README.md
 └── state/                 # Runtime state (git-ignored)
     ├── captcha.png        # Latest CAPTCHA image
@@ -189,7 +242,6 @@ Contributions welcome! Some ideas:
 - Email notifications
 - WhatsApp/Discord/Slack integration
 - Web dashboard
-- Docker support
 
 ## 📄 License
 

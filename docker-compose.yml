@@ -1,0 +1,16 @@
+services:
+  ceac-monitor:
+    build: .
+    container_name: ceac-monitor
+    restart: unless-stopped
+    volumes:
+      - ./config.yaml:/app/config.yaml:ro
+      - ./state:/app/state
+    environment:
+      - CEAC_APP_ID=${CEAC_APP_ID}
+      - CEAC_PASSPORT=${CEAC_PASSPORT}
+      - CEAC_SURNAME=${CEAC_SURNAME}
+      - CEAC_LOCATION=${CEAC_LOCATION}
+      - CEAC_VISA_TYPE=${CEAC_VISA_TYPE:-NIV}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}

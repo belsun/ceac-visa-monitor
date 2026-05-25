@@ -1,0 +1,40 @@
+# Version control
+.git
+.gitignore
+
+# CI/CD
+.github/
+
+# Documentation
+README.md
+LICENSE
+
+# State files (persisted via volume mount)
+state/
+
+# Local config with real credentials
+config.yaml
+
+# Python artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker files (avoid recursive builds)
+Dockerfile
+docker-compose.yml
+docker-compose*.yml
+.dockerignore
