@@ -234,7 +234,7 @@ docker run -d --name ceac-monitor \
 ## ⚠️ Notes
 
 - The CEAC website uses ASP.NET with ViewState — this tool handles the full postback flow
-- CAPTCHA success rate with `ddddocr` is ~70%; the tool auto-retries up to 5 times
+- CAPTCHA success rate with `ddddocr` is low on CEAC's dot-matrix style; the tool auto-retries up to 15 times
 - Status changes are rare (Administrative Processing can last days to weeks)
 - Don't check too frequently — the CEAC site may rate-limit excessive requests
 - This tool is for personal use. Be responsible with your monitoring frequency
