@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from __future__ import annotations
 """
 CEAC Visa Status Monitor
 Periodically checks the U.S. Department of State CEAC visa status page
